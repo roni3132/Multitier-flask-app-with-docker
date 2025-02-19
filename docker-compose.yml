@@ -1,48 +1,41 @@
-version: "3.8"
-
+version: '3.7'
 services:
-  mysql:
-    image: mysql:5.7
-    container_name: mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: devops
-      MYSQL_USER: admin
-      MYSQL_PASSWORD: admin
-    volumes:
-      - ./mysql-data:/var/lib/mysql
-      - ./message.sql:/docker-entrypoint-initdb.d/message.sql  
-    networks:
-      - twotier
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 60s
 
-  flask-app:
+  falskcon:
+    container_name: 'flaskcon'
     build:
       context: .
-    container_name: flask-app
     ports:
       - "5000:5000"
     environment:
-      MYSQL_HOST: mysql
-      MYSQL_USER: root
-      MYSQL_PASSWORD: root
-      MYSQL_DB: devops
-    depends_on:
-      - mysql
-    networks:
-      - twotier
-    restart: always
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:5000/health || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+      MYSQL_HOST: 'mysqlcon'
+      MYSQL_USER: 'root'
+      MYSQL_PASSWORD: '123'
+      MYSQL_DB: 'devops'
 
-networks:
-  twotier:
+  mysqlcon:
+    container_name: 'mysqlcon'
+    image: 'mysql:latest'
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: '123'
+      MYSQL_DATABASE: 'devops'
+    volumes:
+      - my-volume:/var/lib/mysql
+
+
+  phpmyadmin:
+    image: 'phpmyadmin:latest'
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: 'mysqlcon'
+      MYSQL_ROOT_PASSWORD: '123'
+    depends_on:
+      - mysqlcon
+
+
+volumes:
+  my-volume:
+
